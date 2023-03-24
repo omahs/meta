@@ -10,8 +10,10 @@
     - [Troubleshooting](/Guides/CommonSolutions.md)
   - [FAQ](/Guides/FAQ.md)
   - [Common Solutions](/Guides/CommonSolutions.md)
+  - Digital Badges
+    - [Badge Education](/Guides/EducationOnZOS.md)
+    - Exam - Coming soon
   - Articles
-    - [z/OS Porting Digital Badge Education](/Guides/EducationOnZOS.md)
     - [Using Git on z/OS](/Guides/GitOnZOS.md)
     - [Using Vim on z/OS](/Guides/VimOnZOS.md)
   - Resources
