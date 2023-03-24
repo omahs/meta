@@ -11,6 +11,7 @@
   - [FAQ](/Guides/FAQ.md)
   - [Common Solutions](/Guides/CommonSolutions.md)
   - Articles
+    - [z/OS Porting Digital Badge Education](/Guides/EducationOnZOS.md)
     - [Using Git on z/OS](/Guides/GitOnZOS.md)
     - [Using Vim on z/OS](/Guides/VimOnZOS.md)
   - Resources
