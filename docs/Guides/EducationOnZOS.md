@@ -35,7 +35,11 @@ Functionality: LE includes a set of run-time services that handle program startu
 Compatibility: Programs written for LE are not compatible with glibc, and vice versa. If you want to run a program written for z/OS on Linux, you would need to recompile it using glibc.
 
 
+### Supported z/OS Languages and Compilers
+There are many different languages supported on z/OS, including C, C++, PLI, COBOL, REXX, Python and more.
 
+
+# Interacting with z/OS Unix
 ## What is SSH?
 
 SSH is a protocol used for secure remote access to a system. It provides a secure channel for logging in to a remote system and transferring files.
@@ -76,11 +80,3 @@ You'll also need to configure the SSH server on the z/OS system to allow remote 
 
 ## Conclusion
 By the end of this step, you should have a solid understanding of z/OS and SSH, and be ready to move on to more specific topics related to z/OS UNIX fundamentals.
-
-
-
-
-
-
-
-
