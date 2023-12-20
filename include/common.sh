@@ -89,20 +89,20 @@ isPackageActive(){
   getCurrentVersionDir "$needle"
 }
 
-# Given two input files, return those lines in haystack file that are 
+# Given two input files, return those lines in haystack file that are.
 # not in needles file
 diffFile()
 {
   haystackfile="$1"
   needlesfile="$2"
   [ -n "${needlesfile}" ] || printError "Internal error; needle file was empty/non-existent."
-  diff=$(awk 'NR==FNR{needles[$0];next} 
+  diff=$(awk 'NR==FNR{needles[$0];next}
     !($0 in needles) {print}' "${needlesfile}" "${haystackfile}")
   echo "${diff}"
 }
 
-# Given two input lists (with \n delimiters), return those lines in  
-# haystack that are not in needles
+# Given two input lists (with \n delimiters), return those lines in
+# haystack that are not in needles.
 diffList()
 {
   haystack="$1"
@@ -278,7 +278,7 @@ deref()
 darkbackground() {
   if [ "${#COLORFGBG}" -ge 3 ]; then
     bg=${COLORFGBG##*;}
-    if [ ${bg} -lt 7 ]; then
+    if [ "${bg}" -lt 7 ]; then
       return 1
     else
       return 0
@@ -623,13 +623,13 @@ unsymlinkFromSystem()
         if [ -L "${obsoleteFile}" ] && [ ! -e "${obsoleteFile}" ]; then
           # the linked-to file no longer exists (ie. the symlink is dangling)
           rm -f "${obsoleteFile}" > /dev/null 2>&1
-        fi 
+        fi
       done
       ${killph} 2>/dev/null # if the timer is not running, the kill will fail
       sleep 1 # give spinner time to exit if running
     else
       # Slower method needed to analyse each link to see if it has
-      # become orphaned. Only relevent when removing a package as 
+      # become orphaned. Only relevent when removing a package as
       # upgrades/alt-switching can supply a list of files
       # Use sed to skip header line in .links file
       # Note that the contents of the links file are ordered such that
@@ -679,7 +679,7 @@ EOF
       if [ -e "${tempDirFile}" ]; then
         ndirs=$(uniq < "${tempDirFile}" | wc -l  | tr -d ' ')
         printVerbose "- Checking ${ndirs} dir links"
-        for d in $(uniq < "${tempDirFile}" | sort -r) ; do 
+        for d in $(uniq < "${tempDirFile}" | sort -r) ; do
           [ -d "${d}" ] && rmdir "${d}" >/dev/null 2>&1
         done
       fi
@@ -1122,7 +1122,7 @@ downloadJSONCache()
 getReposFromGithub()
 {
   downloadJSONCache
-  repo_results="$(cat "${JSON_CACHE}" | jq -r '.release_data | keys[]')"
+  repo_results="$(jq -r '.release_data | keys[]' < "${JSON_CACHE}" )"
 }
 
 getAllReleasesFromGithub()
@@ -1163,7 +1163,7 @@ checkWritable()
   fi
 }
 
-generateUUID() 
+generateUUID()
 {
   date_part=$(date +%s)
   random_part=$((RANDOM))
