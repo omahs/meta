@@ -7,8 +7,6 @@
 # For more details, see the help which you can get by issuing:
 # zopen-build -h
 #
-# Copyright (C) 2023 z/OS Open Tools Community.
-#
 
 #
 # All zopen-* scripts MUST start with this code to maintain consistency.
