@@ -187,7 +187,6 @@ Deprecated:
   ZOPEN_GIT_TAG         The tag that the git repo should checkout as a branch.
   ZOPEN_GIT_URL         The fully qualified URL that the git repo should be
                         cloned from. (required if ZOPEN_TYPE=GIT)
-  ZOPEN_LIBS            C/C++ libraries (default set by dependency)
   ZOPEN_TARBALL_DEPS    Space-delimited set of source packages this git package
                         depends on to build. (required if ZOPEN_TYPE=TARBALL)
   ZOPEN_TARBALL_URL     The fully qualified URL that the tarball should be
@@ -346,7 +345,6 @@ setDefaults()
   unset ZOPEN_CFLAGS
   unset ZOPEN_CXXFLAGS
   unset ZOPEN_LDFLAGS
-  unset ZOPEN_LIBS
   unset ZOPEN_EXTRA_CPPFLAGS
   unset ZOPEN_EXTRA_CFLAGS
   unset ZOPEN_EXTRA_CXXFLAGS
@@ -806,7 +804,7 @@ setEnv()
   export CFLAGS="${ZOPEN_CFLAGS} ${ZOPEN_EXTRA_CFLAGS}"
   export CXXFLAGS="${ZOPEN_CXXFLAGS} ${ZOPEN_EXTRA_CXXFLAGS}"
   export LDFLAGS="${ZOPEN_LDFLAGS} ${ZOPEN_EXTRA_LDFLAGS}"
-  export LIBS="${ZOPEN_LIBS} ${ZOPEN_EXTRA_LIBS}"
+  export LIBS="${ZOPEN_EXTRA_LIBS}"
 
   # For compatibility with the default 'make' /etc/startup.mk on z/OS
   export CCC="${CXX}"
