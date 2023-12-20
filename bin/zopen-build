@@ -178,12 +178,8 @@ Currently unused:
                         TARBALL, BARE and GIT.
 
 Deprecated:
-  ZOPEN_DEPS            Alternate environment variable instead of
-                        ZOPEN_GIT_DEPS.
+  ZOPEN_DEPS            Alternate environment variable.
   ZOPEN_GIT_BRANCH      The branch that the git repo should checkout.
-  ZOPEN_GIT_DEPS        Space-delimited set of source packages this tarball
-                        package depends on to build.
-                        (required if ZOPEN_TYPE=GIT)
   ZOPEN_GIT_TAG         The tag that the git repo should checkout as a branch.
   ZOPEN_GIT_URL         The fully qualified URL that the git repo should be
                         cloned from. (required if ZOPEN_TYPE=GIT)
@@ -603,9 +599,6 @@ checkEnv()
       if [ ! -z "${ZOPEN_GIT_URL}" ]; then
         export ZOPEN_URL="${ZOPEN_GIT_URL}"
       fi
-      if [ ! -z "${ZOPEN_GIT_DEPS}" ]; then
-        export ZOPEN_DEPS="${ZOPEN_GIT_DEPS}"
-      fi
       printHeader "Using dev environment"
     elif [ "${ZOPEN_TYPE}x" = "BAREx" ]; then
       printHeader "Using bare environment"
@@ -680,7 +673,7 @@ checkEnv()
       printError "ZOPEN_STABLE_URL, ZOPEN_DEV_URL, ZOPEN_URL or ZOPEN_GIT_URL needs to be defined"
     fi
     if [ -z "${ZOPEN_DEPS}" ]; then
-      printError "ZOPEN_STABLE_DEPS, ZOPEN_DEV_DEPS, ZOPEN_DEPS or ZOPEN_GIT_DEPS needs to be defined"
+      printError "ZOPEN_STABLE_DEPS, ZOPEN_DEV_DEPS, ZOPEN_DEPS needs to be defined"
     fi
     implicitDeps="${implicitDeps}"
     printVerbose "Implicitly adding git dependencies: ${implicitDeps}"
