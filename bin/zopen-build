@@ -183,12 +183,10 @@ Deprecated:
   ZOPEN_GIT_TAG         The tag that the git repo should checkout as a branch.
   ZOPEN_GIT_URL         The fully qualified URL that the git repo should be
                         cloned from. (required if ZOPEN_TYPE=GIT)
-  ZOPEN_TARBALL_URL     The fully qualified URL that the tarball should be
-                        downloaded from. (required if ZOPEN_TYPE=TARBALL)
   ZOPEN_TYPE            The type of package to download. Valid types are
                         TARBALL, BARE and GIT.
   ZOPEN_URL             Alternate environment variable instead of
-                        ZOPEN_TARBALL_URL or ZOPEN_GIT_URL.
+                        ZOPEN_GIT_URL.
 "
 }
 
@@ -591,9 +589,6 @@ checkEnv()
     fi
   else
     if [ "${ZOPEN_TYPE}x" = "TARBALLx" ]; then
-      if [ ! -z "${ZOPEN_TARBALL_URL}" ]; then
-        export ZOPEN_URL="${ZOPEN_TARBALL_URL}"
-      fi
       printHeader "Using stable environment"
     elif [ "${ZOPEN_TYPE}x" = "GITx" ]; then
       if [ ! -z "${ZOPEN_GIT_URL}" ]; then
@@ -651,7 +646,7 @@ checkEnv()
 
   if [ "${ZOPEN_TYPE}x" = "TARBALLx" ]; then
     if [ -z "${ZOPEN_URL}" ]; then
-      printError "ZOPEN_STABLE_URL, ZOPEN_DEV_URL, ZOPEN_URL or ZOPEN_TARBALL_URL needs to be defined"
+      printError "ZOPEN_STABLE_URL, ZOPEN_DEV_URL, ZOPEN_URL needs to be defined"
     fi
     if [ -z "${ZOPEN_DEPS}" ]; then
       printError "ZOPEN_STABLE_DEPS, ZOPEN_DEV_DEPS, ZOPEN_DEPS needs to be defined"
