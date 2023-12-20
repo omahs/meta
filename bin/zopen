@@ -20,7 +20,9 @@ setupMyself()
 }
 setupMyself
 
-
+#
+# Display help text.
+#
 printHelp(){
 cat << HELPDOC
 ${ME} is a utility for managing a z/OS Open Tools environment.
