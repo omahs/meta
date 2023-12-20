@@ -21,7 +21,10 @@ setupMyself()
 setupMyself
 checkWritable
 
-printSyntax()
+#
+# Display help text.
+#
+printHelp()
 {
   args=$*
 cat << HELPDOC
@@ -54,20 +57,28 @@ Options:
 HELPDOC
 }
 
+#
+# Install dependencies of a given package.
+#
 installDependencies()
 (
   name=$1
-  printVerbose "List of dependencies to install: ${dependencies}"
+  deplist=$2
+
+  printVerbose "List of dependencies to install: ${deplist}"
   skipupgrade_lcl=${skipupgrade}
   skipupgrade=true
-  echo "${dependencies}" | xargs | tr ' ' '\n' | sort | while read dep; do
-    printVerbose "Removing '${dep}' from dependency queue '${dependencies}'"
-    dependencies=$(echo "${dependencies}" | sed -e "s/${dep}//" | tr -s ' ')
+  echo "${deplist}" | xargs | tr ' ' '\n' | sort | while read dep; do
+    printVerbose "Removing '${dep}' from dependency queue '${deplist}'"
+    deplist=$(echo "${deplist}" | sed -e "s/${dep}//" | tr -s ' ')
     handlePackageInstall "${dep}" true
   done
   skipupgrade=${skipupgrade_lcl}
 )
 
+#
+# Install a package.
+#
 handlePackageInstall()
 {
 
@@ -87,7 +98,7 @@ handlePackageInstall()
   nameSansPort=$(echo "${name}" | sed -e 's#\(.*\)port$#\1#')
   # findutilsport -> findutils
   # findutils -> findutils
-  if [[ "${nameSansPort}" != "${name}" ]] ; then
+  if [ "${nameSansPort}" != "${name}" ] ; then
     printError "Please install using base project name without port suffix.\nTry: zopen install ${nameSansPort}"
   fi
 
@@ -157,7 +168,7 @@ handlePackageInstall()
     while ! ${valid}; do
       echo "Enter version to install (0-${i}): "
       read selection < /dev/tty
-      if [[ ! -z $(echo "${selection}" | sed -e 's/[0-9]*//') ]]; then
+      if [ ! -z $(echo "${selection}" | sed -e 's/[0-9]*//') ]; then
         echo "Invalid input, must be a number between 0 and ${i}."
       elif [ "${selection}" -ge 0 ] && [ "${selection}" -le "${i}" ]; then
         valid=true
@@ -166,7 +177,7 @@ handlePackageInstall()
     printVerbose "Selecting item ${selection} from array"
     releaseMetadata="$(/bin/printf "%s" "${releases}" | jq -e -r ".[${selection}]")"
 
-  elif [ ! -z "${releaseLine}" ]; then
+  elif [ -n "${releaseLine}" ]; then
     printVerbose "Install from release line '${releaseLine}' specified"
     validatedReleaseLine=$(validateReleaseLine "${releaseLine}")
     if [ -z "${validatedReleaseLine}" ]; then
@@ -280,13 +291,13 @@ handlePackageInstall()
         printVerbose "Package ${name} was not installed, so installing instead of upgrading."
       elif ${upgradeInstalled}; then
         printError "Package ${name} can not be upgraded as it is not installed."
-        continue
+        return
       fi
       unInstallOldVersion=false
       printInfo "- Installing ${name}..."
     elif ${skipupgrade}; then
       printInfo "Package ${name} has a newer release '${downloadFileVer}' but was not specified for an upgrade."
-      continue
+      return
     elif ! ${setactive}; then
       printVerbose "Current version '${originalFileVersion}' will remain active."
       unInstallOldVersion=false
@@ -295,7 +306,7 @@ handlePackageInstall()
       if [ -e "${rootInstallDir}/${name}/${name}/.pinned" ]; then
         printWarning "- Version '${originalFileVersion}' has been pinned; upgrade to '${downloadFileVer}' skipped."
         syslog "${ZOPEN_LOG_PATH}/audit.log" "${LOG_A}" "${CAT_PACKAGE},${CAT_INSTALL}" "DOWNLOAD" "handlePackageInstall" "Attempt to change pinned package '${name}' skipped."
-        continue
+        return
       else
         printInfo "- Replacing ${name} version '${originalFileVersion}' with '${downloadFileVer}'"
         unInstallOldVersion=true
@@ -331,7 +342,7 @@ handlePackageInstall()
 
     if ! runAndLog "curlCmd -L '${downloadURL}' -O ${redirectToDevNull}"; then
       printError "Could not download from ${downloadURL}. Correct any errors and potentially retry."
-      continue
+      return
     fi
     ${killph} 2> /dev/null # if the timer is not running, the kill will fail
     syslog "${ZOPEN_LOG_PATH}/audit.log" "${LOG_A}" "${CAT_NETWORK},${CAT_PACKAGE},${CAT_FILE}" "DOWNLOAD" "handlePackageInstall" "Downloaded remote file '${pax}'"
@@ -378,7 +389,7 @@ handlePackageInstall()
     if ! runLogProgress "pax -rf ${pax} -p p ${paxredirect} ${redirectToDevNull}" "Expanding ${pax}" "Expanded"; then
       printWarning "Errors unpaxing, package directory state unknown."
       printInfo "Use zopen alt to select previous version."
-      continue
+      return
     fi
     if ${localInstall}; then
       rm -f "${pax}"
@@ -448,7 +459,7 @@ EOF
       syslog "${ZOPEN_LOG_PATH}/audit.log" "${LOG_A}" "${CAT_INSTALL},${CAT_PACKAGE}" "DOWNLOAD" "handlePackageInstall" "Installed package:'${name}';version:${downloadFileVer};install_dir='${baseinstalldir}/${installdirname}';"
     fi
 
-    registerInstall "$name" "${downloadFileVer}" "${upgradeInstalled}" ${isRuntimeDependency}
+    registerInstall "$name" "${downloadFileVer}" "${upgradeInstalled}" "${isRuntimeDependency}"
 
     if ${doNotInstallDeps}; then
       printInfo "- Skipping dependency installation."
@@ -480,6 +491,9 @@ EOF
   fi # (download only)
 }
 
+#
+# Install a list of packages.
+#
 installPorts()
 (
   ports="$1"
@@ -491,7 +505,9 @@ installPorts()
   mutexFree "zopen"
 )
 
+#
 # Main code start here
+#
 args=$*
 upgradeInstalled=false
 verbose=false
@@ -509,63 +525,78 @@ doNotInstallDeps=false
 all=false
 yesToPrompts=false
 chosenRepos=""
+
 while [ $# -gt 0 ]; do
   case "$1" in
   "-u" | "--update" | "--upgrade")
-    upgradeInstalled=true # Upgrade packages
+    # Upgrade packages.
+    upgradeInstalled=true
     ;;
   "-r" | "-reinstall" | "--reinstall")
-    reinstall=true # If package already installed, reinstall
+    # If package already installed, reinstall.
+    reinstall=true
     ;;
   "--install-or-upgrade")
-    installOrUpgrade=true # Upgrade package or install if not present
+    # Upgrade package or install if not present.
+    installOrUpgrade=true
     ;;
   "--local-install")
-    localInstall=true # Install the package into current directory
+    # Install the package into current directory.
+    localInstall=true
     ;;
   "--no-symlink")
-    nosymlink=true # Do not mesh the package into the file system; leave as stand-alone
+    # Do not mesh the package into the file system; leave as stand-alone.
+    nosymlink=true
     ;;
   "--no-deps")
     doNotInstallDeps=true
     ;;
   "--cache-only")
-    cacheOnly=true # Download remote pax file to cache only (no install)
+    # Download remote pax file to cache only (no install).
+    cacheOnly=true
     ;;
   "--release-line")
     shift
     releaseLine=$(echo "$1" | awk '{print toupper($0)}')
     ;;
   "--yes" | "-y")
-    yesToPrompts=true # Automatically answer 'yes' to any questions
+    # Automatically answer 'yes' to any questions.
+    yesToPrompts=true
     ;;
   "--download-only")
-    downloadOnly=true # Download remote pax file to current directory only
+    # Download remote pax file to current directory only.
+    downloadOnly=true
     ;;
   "--no-set-active")
-    setactive=false # Install package as normal but keep existing installation as active
+    # Install package as normal but keep existing installation as active.
+    setactive=false
     ;;
   "--skip-upgrade")
-    skipupgrade=true # Do not upgrade any packages
+    # Do not upgrade any packages.
+    skipupgrade=true
     ;;
   "--all")
-    all=true # Install all packages
+    all=true
     ;;
   "--select")
-    selectVersion=true # Display a selction table to allow version picking
+    # Display a selction table to allow version picking.
+    selectVersion=true
     ;;
   "-h" | "--help" | "-?" )
-    printSyntax "${args}"
+    printHelp "${args}"
     exit 0
     ;;
   "--debug")
+    # Print extra and debug messages.
     verbose=true
     debug=true
     ;;
   "-v" | "--verbose")
+    # Print extra messages.
     verbose=true
     ;;
   "--version")
+    # Display version information.
     zopen-version ${ME}
     exit 0
     ;;
@@ -645,10 +676,10 @@ if ${all}; then
     # Sum up the pax size + expanded size of the latest releases of each port
     spaceRequiredBytes=$(jq '.release_data | to_entries | map(select(.value | length > 0)) | map(.value[0].assets[0]) | reduce .[] as $item ({}; . + {($item.name): ($item.size + $item.expanded_size)}) | [.[]] | add' ${JSON_CACHE})
     spaceRequiredMB=$(echo "scale=0; ${spaceRequiredBytes} / (1024 * 1024)" | bc)
-    availableSpaceMB=$(/bin/df -m ${ZOPEN_ROOTFS} | sed "1d" | awk '{ print $3 }' | awk -F'/' '{ print $1 }')
+    availableSpaceMB=$(/bin/df -m "${ZOPEN_ROOTFS}" | sed "1d" | awk '{ print $3 }' | awk -F'/' '{ print $1 }')
 
     printInfo "You have chosen to install all tools. An estimated ${spaceRequiredMB} MB of additional disk space will be used."
-    if [ $availableSpaceMB -lt $spaceRequiredMB ]; then
+    if [ "$availableSpaceMB" -lt "$spaceRequiredMB" ]; then
       printWarning "Your zopen file-system ($ZOPEN_ROOTFS) only has ${availableSpaceMB} MB of available space."
     fi
     printInfo "Enter 'all' to confirm full installation. (This can take a VERY long time!):"
@@ -657,7 +688,7 @@ if ${all}; then
       printError "Cancelling full installation."
     fi
   fi
-  for repo in $(echo ${repo_results}); do
+  for repo in ${repo_results}; do
     installArray="${installArray} ${repo}"
   done
   installArray=$(strtrim "${installArray}")
