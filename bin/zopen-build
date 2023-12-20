@@ -34,7 +34,6 @@ setupMyself
 # the file will now be tagged as ascii instead of ebcdic
 # For compatibility, check the tag of the file after the echo and iconv the file IFF it is IBM-1047
 #
-
 asciiecho()
 {
   text="$1"
@@ -52,6 +51,9 @@ asciiecho()
   return 0
 }
 
+#
+# Print environment variable help.
+#
 printEnvVar()
 {
   echo "User-Provided environment variables:
@@ -176,8 +178,6 @@ Currently unused:
                         TARBALL, BARE and GIT.
 
 Deprecated:
-  ZOPEN_CC              C compiler. (default set by dependency)
-  ZOPEN_CXX             C++ compiler. (default set by dependency)
   ZOPEN_DEPS            Alternate environment variable instead of
                         ZOPEN_TARBALL_DEPS or ZOPEN_GIT_DEPS.
   ZOPEN_GIT_BRANCH      The branch that the git repo should checkout.
@@ -199,6 +199,9 @@ Deprecated:
 "
 }
 
+#
+# Print available functions and descriptions.
+#
 printFunctions()
 {
   echo "User-Provided functions:
@@ -246,6 +249,9 @@ Optional:
   "
 }
 
+#
+# Print additional commands to viewf
+#
 printSeeAlso()
 {
   echo "SEE ALSO:
@@ -260,7 +266,7 @@ printSeeAlso()
 
 # Temporary files
 for tmp in "${TMPDIR}" "${TMP}" /tmp; do
-  if [ ! -z ${tmp} ] && [ -d ${tmp} ]; then
+  if [ -n "${tmp}" ] && [ -d ${tmp} ]; then
     break
   fi
 done
@@ -306,6 +312,9 @@ setDefaultBuild()
   fi
 }
 
+#
+# Initialize variable defaults.
+#
 setDefaults()
 {
   export ZOPEN_BOOTSTRAPD="./bootstrap"
@@ -346,7 +355,10 @@ setDefaults()
   return 0
 }
 
-printSyntax()
+#
+# Print syntax help information.
+#
+printHelp()
 {
   args=$*
   cat << HELPDOC
@@ -422,7 +434,7 @@ processOptions()
     case $1 in
     "-h" | "--help" | "-?")
       trap - EXIT
-      printSyntax "${args}"
+      printHelp "${args}"
       exit 0
       ;;
     "--version")
@@ -502,6 +514,9 @@ processOptions()
   done
 }
 
+#
+# Load the build environment.
+#
 loadBuildEnv()
 {
   if [ ! -r ${buildEnvFile} ]; then
@@ -515,13 +530,15 @@ loadBuildEnv()
 
   setDefaultBuild
 
-
   if command -V "zopen_post_buildenv" > /dev/null 2>&1; then
     printVerbose "Running zopen_post_buildenv"
     zopen_post_buildenv
   fi
 }
 
+#
+# Check and validate build environment.
+#
 checkEnv()
 {
   printHeader "Checking environment configuration"
@@ -554,11 +571,11 @@ checkEnv()
       fi
     elif [ "${ZOPEN_BUILD_LINE}x" = "STABLEx" ]; then
       if [ -z "${ZOPEN_STABLE_DEPS}" ]; then
-        printError "Building from stable, but ZOPEN_STABLE_DEPS not specified"
+        printError "Building from stable, but ZOPEN_STABLE_DEPS not specified."
       fi
       ZOPEN_DEPS="${ZOPEN_STABLE_DEPS}"
       if [ -z "${ZOPEN_STABLE_URL}" ]; then
-        printError "Building from stable, but ZOPEN_STABLE_URL not specified"
+        printError "Building from stable, but ZOPEN_STABLE_URL not specified."
       fi
       ZOPEN_URL="${ZOPEN_STABLE_URL}"
       if [ ! -z "${ZOPEN_STABLE_BRANCH}" ]; then
@@ -876,14 +893,16 @@ tagTree()
 checkGitVersion()
 {
   if ! git --version > /dev/null 2> /dev/null; then
-    printError "git is required to download from the git repo"
+    printError "git is required to download from the code repository."
   fi
   gitraw=$(git --version | awk '{print $3;}')
+  min_ver=2
+  min_rel=39
   v=${gitraw%%.*}
   vr=${gitraw%.*}
   r=${vr##*.}
-  if [ ${v} -lt 2 ] || [ ${r} -lt 39 ]; then
-    printError "Need to be running at least git 2.39"
+  if [ "${v}" -lt ${min_ver} ] || [ "${r}" -lt ${min_rel} ]; then
+    printError "Need to be running at least git ${min_ver}.${min_rel}"
   fi
 }
 
@@ -1187,6 +1206,9 @@ create_fifo_pipe()
   TEE_PID=$!
 }
 
+#
+# Clean up working environment.
+#
 cleanup()
 {
   if [ -n "${ZOPEN_CLEAN_CMD}" ] && [ -f "${ZOPEN_LOG_DIR}/config.success" ] && ! ${freshBuild}; then
