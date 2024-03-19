@@ -395,7 +395,7 @@ generateJsonConfiguration()
     fi
   fi
 
-  cat <<zz > "${jsonConfigWorking}"
+  cat <<EOF > "${jsonConfigWorking}"
   {
     "release_line": "${releaseLine}",
     "num_rm_procs": ${RM_FILEPROCS},
@@ -403,7 +403,6 @@ generateJsonConfiguration()
     "autocacheclean": 1
   }
 EOF
-  fi
   jq '.' "${jsonConfigWorking}" > "${jsonConfig}"
   echo 1 > "${rootfs}/etc/zopen/autocacheclean"
 }
